@@ -132,7 +132,7 @@ func TestDNSPacketParsing(t *testing.T) {
 
 	t.Logf("✓ DNS 解析成功")
 	t.Logf("  ID: 0x%04x", msg.Header.ID)
-	t.Logf("  域名: %s", msg.GetQueryName())
+	t.Logf("  域名: %s", msg.GetQueryDomain())
 	t.Logf("  类型: %d", msg.GetQueryType())
 }
 

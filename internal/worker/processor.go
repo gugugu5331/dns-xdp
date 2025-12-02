@@ -120,7 +120,7 @@ func (p *Pool) handleAction(pkt Packet, msg *dns.Message, action filter.Action,
 			metricsCollector.IncBlocked()
 		}
 		if rule != nil {
-			log.Printf("Blocked: %s (rule: %s)", msg.GetQueryName(), rule.ID)
+			log.Printf("Blocked: %s (rule: %s)", msg.GetQueryDomain(), rule.ID)
 		}
 
 	case filter.ActionRedirect:
@@ -142,7 +142,7 @@ func (p *Pool) handleAction(pkt Packet, msg *dns.Message, action filter.Action,
 
 	case filter.ActionLog:
 		log.Printf("Logged: %s type=%s from=%s",
-			msg.GetQueryName(),
+			msg.GetQueryDomain(),
 			dns.TypeName(msg.GetQueryType()),
 			pktInfo.SrcIP)
 		if metricsCollector != nil {

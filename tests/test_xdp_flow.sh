@@ -124,16 +124,18 @@ compile_bpf() {
 # 测试 AF_XDP Socket
 test_afxdp() {
     echo -e "${YELLOW}[4/6] 测试 AF_XDP Socket...${NC}"
-    
+
     cd "$(dirname "$0")/.."
-    
+
     # 设置内存锁限制
     ulimit -l unlimited 2>/dev/null || true
-    
-    # 运行 Go 测试
+
+    # 运行 Go 测试 (使用用户的 Go)
     echo "  运行 XDP 流程测试..."
-    
-    if go test -v ./tests/ -run TestXDPProgramLoad -timeout 30s 2>&1 | head -20; then
+
+    # 保留 PATH 环境变量，以便 sudo 使用正确的 Go 版本
+    export GOPATH=/home/lxx/gopath
+    if sudo -E env "PATH=$PATH" "GOPATH=$GOPATH" go test -v ./tests/ -run TestXDPProgramLoad -timeout 30s 2>&1 | head -20; then
         echo -e "${GREEN}  ✓ XDP 程序加载测试通过${NC}"
     else
         echo -e "${YELLOW}  ! XDP 程序加载测试失败 (可能需要特定内核配置)${NC}"
@@ -143,17 +145,28 @@ test_afxdp() {
 # 测试 DNS 解析
 test_dns_parsing() {
     echo -e "${YELLOW}[5/6] 测试 DNS 解析...${NC}"
-
-    echo -e "${YELLOW}  跳过 DNS 解析测试（按需求）${NC}"
-    echo -e "${GREEN}  ✓ DNS 解析测试跳过${NC}"
+    
+    cd "$(dirname "$0")/.."
+    
+    go test -v ./tests/ -run TestDNSPacketParsing -timeout 10s 2>&1 | tail -10
+    
+    echo -e "${GREEN}  ✓ DNS 解析测试完成${NC}"
 }
 
 # 性能测试
 test_performance() {
     echo -e "${YELLOW}[6/6] 性能基准测试...${NC}"
-
-    echo -e "${YELLOW}  跳过性能测试（按需求）${NC}"
-    echo -e "${GREEN}  ✓ 性能测试跳过${NC}"
+    
+    cd "$(dirname "$0")/.."
+    
+    echo "  DNS 解析性能:"
+    go test -bench=BenchmarkDNSParse -benchtime=1s ./pkg/dns/ 2>&1 | grep -E "Benchmark|ns/op"
+    
+    echo ""
+    echo "  Trie 匹配性能:"
+    go test -bench=BenchmarkTrieMatch -benchtime=1s ./pkg/filter/ 2>&1 | grep -E "Benchmark|ns/op"
+    
+    echo -e "${GREEN}  ✓ 性能测试完成${NC}"
 }
 
 # 总结
